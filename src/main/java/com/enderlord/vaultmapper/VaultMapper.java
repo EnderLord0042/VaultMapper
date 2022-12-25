@@ -166,7 +166,7 @@ public class VaultMapper
 
     @SubscribeEvent
     public void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
-        if (event.getTo().location().toString().matches("minecraft:the_nether")) {// test with minecraft:the_nether the_vault:vault_.*
+        if (event.getTo().location().toString().matches("the_vault:vault_.*")) {// test with minecraft:the_nether
             enableMap();
             currentVault = event.getTo().location().toString();
         } else {
