@@ -128,6 +128,21 @@ public class VaultMapper
         updatePredictionWithDiscovery(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
         graphicmap.togglePlayerRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
     }
+    private void moveBasedOnCoordinates(int x, int y) {
+        int xDiff = x - lastPlayerCoordinates.getA();
+        int yDiff = y - lastPlayerCoordinates.getB();
+
+        if (yDiff > 0) {
+            moveNorth();
+        } else if (yDiff < 0) {
+            moveSouth();
+        }
+        if (xDiff > 0) {
+            moveEast();
+        } else if (xDiff < 0) {
+            moveWest();
+        }
+    }
     private void updatePredictionWithDiscovery(int x, int y) {
         if (predictedShapes.size() > 1) {
             for (int i = 0; i < predictedShapes.size(); i++) {
@@ -173,15 +188,6 @@ public class VaultMapper
 
     @SubscribeEvent
     public void onPlayerChat(ClientChatEvent event) {
-        if (event.getMessage().equals("WALL")) {
-            graphicmap.toggleNorthWall(0,0);
-            graphicmap.toggleEastWall(0,0);
-            graphicmap.toggleSouthWall(0,0);
-            graphicmap.toggleWestWall(0,0);
-        } else if (event.getMessage().equals("RESET")) {
-            disableMap();
-            enableMap();
-        }
         if (mapping) {
             if (event.getMessage().toLowerCase().contains("wall")) {
                 String messageWithoutWall = event.getMessage().toLowerCase().replace("wall", "");
@@ -209,6 +215,58 @@ public class VaultMapper
                     case "s" -> moveSouth();
                     case "w" -> moveWest();
                 }
+            } else if (event.getMessage().toLowerCase().matches("[nesw]\\d")) {
+                int messageX = 0;
+                int messageY = 0;
+                switch (event.getMessage().toLowerCase().substring(0,1)) {
+                    case "n" -> messageY = Integer.parseInt(event.getMessage().substring(1,2));
+                    case "e" -> messageX = Integer.parseInt(event.getMessage().substring(1,2));
+                    case "s" -> messageY = -Integer.parseInt(event.getMessage().substring(1,2));
+                    case "w" -> messageX = -Integer.parseInt(event.getMessage().substring(1,2));
+                }
+                moveBasedOnCoordinates(messageX, messageY);
+            } else if (event.getMessage().toLowerCase().matches("\\d[nesw]")) {
+                int messageX = 0;
+                int messageY = 0;
+                switch (event.getMessage().toLowerCase().substring(1,2)) {
+                    case "n" -> messageY = Integer.parseInt(event.getMessage().substring(0,1));
+                    case "e" -> messageX = Integer.parseInt(event.getMessage().substring(0,1));
+                    case "s" -> messageY = -Integer.parseInt(event.getMessage().substring(0,1));
+                    case "w" -> messageX = -Integer.parseInt(event.getMessage().substring(0,1));
+                }
+                moveBasedOnCoordinates(messageX, messageY);
+            } else if (event.getMessage().toLowerCase().matches("[nesw]\\d[nesw]\\d")) {
+                int messageX = 0;
+                int messageY = 0;
+                switch (event.getMessage().toLowerCase().substring(0,1)) {
+                    case "n" -> messageY = Integer.parseInt(event.getMessage().substring(1,2));
+                    case "e" -> messageX = Integer.parseInt(event.getMessage().substring(1,2));
+                    case "s" -> messageY = -Integer.parseInt(event.getMessage().substring(1,2));
+                    case "w" -> messageX = -Integer.parseInt(event.getMessage().substring(1,2));
+                }
+                switch (event.getMessage().toLowerCase().substring(2,3)) {
+                    case "n" -> messageY = Integer.parseInt(event.getMessage().substring(3,4));
+                    case "e" -> messageX = Integer.parseInt(event.getMessage().substring(3,4));
+                    case "s" -> messageY = -Integer.parseInt(event.getMessage().substring(3,4));
+                    case "w" -> messageX = -Integer.parseInt(event.getMessage().substring(3,4));
+                }
+                moveBasedOnCoordinates(messageX, messageY);
+            } else if (event.getMessage().toLowerCase().matches("\\d[nesw]\\d[nesw]")) {
+                int messageX = 0;
+                int messageY = 0;
+                switch (event.getMessage().toLowerCase().substring(1,2)) {
+                    case "n" -> messageY = Integer.parseInt(event.getMessage().substring(0,1));
+                    case "e" -> messageX = Integer.parseInt(event.getMessage().substring(0,1));
+                    case "s" -> messageY = -Integer.parseInt(event.getMessage().substring(0,1));
+                    case "w" -> messageX = -Integer.parseInt(event.getMessage().substring(0,1));
+                }
+                switch (event.getMessage().toLowerCase().substring(3,4)) {
+                    case "n" -> messageY = Integer.parseInt(event.getMessage().substring(2,3));
+                    case "e" -> messageX = Integer.parseInt(event.getMessage().substring(2,3));
+                    case "s" -> messageY = -Integer.parseInt(event.getMessage().substring(2,3));
+                    case "w" -> messageX = -Integer.parseInt(event.getMessage().substring(2,3));
+                }
+                moveBasedOnCoordinates(messageX, messageY);
             }
         }
     }
