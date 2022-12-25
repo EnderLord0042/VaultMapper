@@ -97,6 +97,8 @@ public class VaultMapOverlay implements IIngameOverlay {
             for (int x = 0; x < 17;x++) {
                 if (predictedShape[x][y]) {
                     roomGrid[x][y] = (byte)(roomGrid[x][y] | 0x08);
+                } else {
+                    roomGrid[x][y] = (byte)(roomGrid[x][y] & 0xF7);
                 }
             }
         }

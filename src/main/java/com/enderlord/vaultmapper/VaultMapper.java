@@ -9,7 +9,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
@@ -28,6 +27,7 @@ public class VaultMapper
     private boolean portalRoomWalled = false;
     private Pair<Integer, Integer> lastPlayerCoordinates;
     private List<boolean[][]> predictedShapes = new ArrayList<>();
+    private String currentVault = "";
 
     public VaultMapper() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
@@ -49,12 +49,7 @@ public class VaultMapper
         graphicmap.togglePlayerRoom(0,0);
         lastPlayerCoordinates = new Pair<>(0,0);
 
-        predictedShapes.add(VaultShapes.DIAMOND1.predictedSpots);
-        predictedShapes.add(VaultShapes.DIAMOND2.predictedSpots);
-        predictedShapes.add(VaultShapes.DIAMOND3.predictedSpots);
-        predictedShapes.add(VaultShapes.DIAMOND4.predictedSpots);
-        predictedShapes.add(VaultShapes.DIAMOND5.predictedSpots);
-        predictedShapes.add(VaultShapes.BIGSQUARE.predictedSpots);
+        predictedShapes = VaultShapes.possibleShapes();
 
         graphicmap.setPredicted(predictedShapes.get(0));
 
@@ -68,20 +63,17 @@ public class VaultMapper
         lastPlayerCoordinates = new Pair<>(0,0);
         predictedShapes = new ArrayList<>();
         graphicmap.reset();
+
+        currentVault = "";
     }
-    private Pair<Integer, Integer> clampPair(Pair<Integer, Integer> inputpair) {
-        Pair<Integer, Integer> pair = inputpair;
-        if (pair.getA() > 8) {
-            pair = new Pair<>(8, pair.getB());
-        } else if (pair.getA() < -8) {
-            pair = new Pair<>(-8, pair.getB());
+    private int clamp(int input) {
+        int output = input;
+        if (output > 8) {
+            output = 8;
+        } else if (output < -8) {
+            output = -8;
         }
-        if (pair.getB() > 8) {
-            pair = new Pair<>(pair.getA(), 8);
-        } else if (pair.getB() < -8) {
-            pair = new Pair<>(pair.getA(), -8);
-        }
-        return pair;
+        return output;
     }
     private void moveNorth() {
         if (!portalRoomWalled) {
@@ -92,7 +84,7 @@ public class VaultMapper
             graphicmap.toggleWestWall(0,0);
         }
         graphicmap.togglePlayerRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
-        lastPlayerCoordinates = clampPair(new Pair<>(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB() + 1));
+        lastPlayerCoordinates = new Pair<>(lastPlayerCoordinates.getA(), clamp(lastPlayerCoordinates.getB() + 1));
         graphicmap.discoverRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
         updatePredictionWithDiscovery(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
         graphicmap.togglePlayerRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
@@ -105,7 +97,7 @@ public class VaultMapper
             graphicmap.toggleWestWall(0,0);
         }
         graphicmap.togglePlayerRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
-        lastPlayerCoordinates = clampPair(new Pair<>(lastPlayerCoordinates.getA() + 1, lastPlayerCoordinates.getB()));
+        lastPlayerCoordinates = new Pair<>(clamp(lastPlayerCoordinates.getA() + 1), lastPlayerCoordinates.getB());
         graphicmap.discoverRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
         updatePredictionWithDiscovery(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
         graphicmap.togglePlayerRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
@@ -118,7 +110,7 @@ public class VaultMapper
             graphicmap.toggleWestWall(0,0);
         }
         graphicmap.togglePlayerRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
-        lastPlayerCoordinates = clampPair(new Pair<>(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB() - 1));
+        lastPlayerCoordinates = new Pair<>(lastPlayerCoordinates.getA(), clamp(lastPlayerCoordinates.getB() - 1));
         graphicmap.discoverRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
         updatePredictionWithDiscovery(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
         graphicmap.togglePlayerRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
@@ -131,33 +123,50 @@ public class VaultMapper
             graphicmap.toggleSouthWall(0,0);
         }
         graphicmap.togglePlayerRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
-        lastPlayerCoordinates = clampPair(new Pair<>(lastPlayerCoordinates.getA() - 1, lastPlayerCoordinates.getB()));
+        lastPlayerCoordinates = new Pair<>(clamp(lastPlayerCoordinates.getA() - 1), lastPlayerCoordinates.getB());
         graphicmap.discoverRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
         updatePredictionWithDiscovery(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
         graphicmap.togglePlayerRoom(lastPlayerCoordinates.getA(), lastPlayerCoordinates.getB());
     }
     private void updatePredictionWithDiscovery(int x, int y) {
-        for (int i = 0; i < predictedShapes.size(); i++) {
-            if (!predictedShapes.get(i)[x + 8][8 - y]) {
-                predictedShapes.remove(i);
+        if (predictedShapes.size() > 1) {
+            for (int i = 0; i < predictedShapes.size(); i++) {
+                if (!predictedShapes.get(i)[x + 8][8 - y]) {
+                    predictedShapes.remove(i);
+                }
             }
+            graphicmap.setPredicted(predictedShapes.get(0));
         }
-        graphicmap.setPredicted(predictedShapes.get(0));
     }
     private void updatePredictionWithWall(int x, int y) {
-        for (int i = 0; i < predictedShapes.size(); i++) {
-            if (predictedShapes.get(i)[x + 8][8 - y]) {
-                predictedShapes.remove(i);
+        if (predictedShapes.size() > 1) {
+            for (int i = 0; i < predictedShapes.size(); i++) {
+                if (predictedShapes.get(i)[x + 8][8 - y]) {
+                    predictedShapes.remove(i);
+                }
             }
+            graphicmap.setPredicted(predictedShapes.get(0));
         }
-        graphicmap.setPredicted(predictedShapes.get(0));
     }
 
     @SubscribeEvent
     public void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
-        if (event.getTo().location().toString().matches("the_vault:vault_.*")) {// test with minecraft:the_nether
+        if (event.getTo().location().toString().matches("minecraft:the_nether")) {// test with minecraft:the_nether the_vault:vault_.*
             enableMap();
+            currentVault = event.getTo().location().toString();
         } else {
+            disableMap();
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerDeath(PlayerEvent.PlayerRespawnEvent event) {
+        disableMap();
+    }
+
+    @SubscribeEvent
+    public void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!event.getPlayer().level.dimension().location().toString().equals(currentVault)) {
             disableMap();
         }
     }
@@ -178,19 +187,19 @@ public class VaultMapper
                 String messageWithoutWall = event.getMessage().toLowerCase().replace("wall", "");
                 if (messageWithoutWall.contains("n")) {
                     graphicmap.toggleNorthWall(lastPlayerCoordinates.getA(),lastPlayerCoordinates.getB());
-                    updatePredictionWithWall(lastPlayerCoordinates.getA(),lastPlayerCoordinates.getB() + 1);
+                    updatePredictionWithWall(lastPlayerCoordinates.getA(),clamp(lastPlayerCoordinates.getB() + 1));
                 }
                 if (messageWithoutWall.contains("e")) {
                     graphicmap.toggleEastWall(lastPlayerCoordinates.getA(),lastPlayerCoordinates.getB());
-                    updatePredictionWithWall(lastPlayerCoordinates.getA() + 1,lastPlayerCoordinates.getB());
+                    updatePredictionWithWall(clamp(lastPlayerCoordinates.getA() + 1),lastPlayerCoordinates.getB());
                 }
                 if (messageWithoutWall.contains("s")) {
                     graphicmap.toggleSouthWall(lastPlayerCoordinates.getA(),lastPlayerCoordinates.getB());
-                    updatePredictionWithWall(lastPlayerCoordinates.getA(),lastPlayerCoordinates.getB() - 1);
+                    updatePredictionWithWall(lastPlayerCoordinates.getA(),clamp(lastPlayerCoordinates.getB() - 1));
                 }
                 if (messageWithoutWall.contains("w")) {
                     graphicmap.toggleWestWall(lastPlayerCoordinates.getA(),lastPlayerCoordinates.getB());
-                    updatePredictionWithWall(lastPlayerCoordinates.getA() - 1,lastPlayerCoordinates.getB());
+                    updatePredictionWithWall(clamp(lastPlayerCoordinates.getA() - 1),lastPlayerCoordinates.getB());
                 }
             } else if (event.getMessage().length() == 1) {
                 String lowercaseMessage = event.getMessage().toLowerCase();
