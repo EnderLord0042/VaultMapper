@@ -1,27 +1,53 @@
-# Map Overlay Mod for Vault Hunters Modpack
-This mod adds a map overlay feature to the Vault Hunters modpack for Minecraft 1.18.2. When you type a direction in chat, the mod will add it to the map as a waypoint, allowing you to easily track your progress and navigate the game world.
+# Vault Mapper
+This mod is intended to be used with the Vault Hunters Modpack. It uses the information typed in chat to create a map of your current vault. Ask your Vault Hunters server admin if you are allowed use this mod before using it. We do not consider it as cheating cheating because the same behavior could be acheived with a piece of graph paper, but their views may differ.
 
 # Installation
-- Install Minecraft Forge for Minecraft 1.18.2.
-- Download the Map Overlay mod from the releases page.
-- Install the mod by placing it in the minecraft/mods folder.
-- Start Minecraft and select the Map Overlay mod from the mod list.
-- Enjoy the added map overlay feature!
+To install this mod, simpily download the lastest version from [the releases page](https://github.com/EnderLord0042/VaultMapper/releases), and place it in the mods folder of your Vault Hunters Minecraft instance.
 
 # Usage
-To use the map overlay feature, simply type a direction (e.g. "north (n)", "south (s)", "east (e)", "west (w)") in chat. The mod will automatically add a waypoint to the map in that direction. You can also type "clear" to remove all waypoints from the map. You can also use any of the following expressions for setting the possition to relative coordinates.
-- n1
-- n1e1
-- 1s1e
-- 4n2e
+When you enter a vault with this mod installed, a map will automatically appear in the top right corner of your screen. Certain messages in chat will update this map
 
-Any values not specified are considered 0
+## Map Features
+ - Grey Tiles: Predicted Rooms (This will change as more of the vault is explored and certain possibilites are eliminated.)
+ - White Tiles: Discovered Rooms
+ - Green Dot: Portal Room
+ - Red Dot: Player's Position
+ - Black Lines: Walls
 
-You can also add wall using "wall" followed by a direction ("ews")
+## Chat Controls
+### Discovering Rooms
+There are two ways to indicate that your player has moved to a new room. You can either type the last direction you moved in, or specify new relative coordinates of your player. In all chat controls, uppercase and lowercase do not matter.
+
+##### Last Direction Moved
+This is the simplest way to indicate that the player has moved to a new room. Simpily type "N", "E", "S", or "W" in the chat to indicate that you have moved North, South, East or West respectively.
+
+##### Relative Coordinates
+This method involves typing your coordinates in the vault relative to the portal room as you explore the vault. There are various combinations of numbers and letters supported. They are listed below with "D" indicating a direction, such as "N", "E", "S", or "W"; and "#" indicating a number. Negative numbers are not supported.
+
+#D
+D#
+#D#D
+D#D#
+
+An example of what might be typed in chat as relative coordinates are used to map a vault is shown below
+
+1N
+2N
+2N1W
+1N1W
+1W
+1S1W
+1S2W
+
+### Discovering Walls
+It is usually not necessary to specify walls discovered, but they can help with the vault shape prediction. Walls surrounding the portal room are discovered automatically based on the first direction used to exit the portal room. For other walls, they must be discovered by typing "wall" followed by all directions in which walls are present. An example is shown below
+
+wall wne
 
 # Credits
 EnderLord0042 - Mod Idea & Creation
-melonboy10 - Clean Up & Bug Fixes
+
+melonboy10 - Creating a ChatGPT readme that was bad and misleading that EnderLord0042 had to rewrite
 
 # License
 This mod is licensed under the MIT License. See LICENSE for more information.
